@@ -13,10 +13,22 @@ log.addHandler(handler)
 
 def BF(s, G):
     L = [ [sys.maxint if v != s else 0 for v in G.keys()] ]
-    L.extend([ [] for i in range(len(G.keys())-1) ])
+    L.extend([ [None]*len(G.keys()) for i in range(len(G.keys())-1) ])
 
     for i in range(1,len(G.keys())):
-        
+        for v in G.keys():
+            if s == v:
+                L[i][v] = 0
+            else:
+                tmp_min = min([L[i-1][u]+w for u, w in G[v]])
+                L[i][v] = min([tmp_min, L[i-1][v]])
+    tmp = [None]*len(G.keys())
+    for v in G.keys():
+        tmp_min = min([L[-1][u]+w for u, w in G[v]])
+        tmp[v] = min([tmp_min, L[-1][v]])
+    if tmp != L[-1]:
+        return None
+    return L[-1]
 
 if __name__ == "__main__":
     parser = OptionParser()
