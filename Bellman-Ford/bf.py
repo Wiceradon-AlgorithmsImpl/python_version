@@ -33,14 +33,16 @@ def BF(s, G):
 if __name__ == "__main__":
     parser = OptionParser()
     parser.add_option("-f")
+    parser.add_option("-s")
     option, args = parser.parse_args()
     
     filename = option.f
+    s = int(option.s)
     log.info("Filename: {}".format(filename))
     G = defaultdict(list)
     with open(filename, 'r') as f:
         for line in f.readlines():
-            v1, v2, w = line.split()
+            v1, v2, w = [int(x) for x in line.split()]
             G[v1].append( (v2, int(w)) )
             G[v2].append( (v1, int(w)) )
-
+    print BF(s, G)
