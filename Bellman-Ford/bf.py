@@ -3,7 +3,7 @@ import sys
 from optparse import OptionParser
 from collections import defaultdict
 
-log_level=logging.INFO
+log_level=logging.DEBUG
 log = logging.getLogger(__name__)
 log.setLevel(log_level)
 
@@ -11,20 +11,27 @@ handler = logging.FileHandler('bf.log')
 handler.setLevel(log_level)
 log.addHandler(handler)
 
-def BF(s, G):
-    L = [ [sys.maxint if v != s else 0 for v in G.keys()] ]
-    L.extend([ [None]*len(G.keys()) for i in range(len(G.keys())-1) ])
+def BF(s, V, G):
+    L = [ dict([ (v, sys.maxint) if v != s else (s, 0) for v in V]) ]
+    L.extend([ dict([(v, None) for v in V]) for i in range(len(V)-1) ])
 
-    for i in range(1,len(G.keys())):
-        for v in G.keys():
+
+    for i in range(1,len(V)):
+        for v in V:
+            log.debug("i: {}\tv: {}".format(i,v))
             if s == v:
                 L[i][v] = 0
             else:
-                tmp_min = min([L[i-1][u]+w for u, w in G[v]])
+                log.debug("L[i-1]: {}".format(L[i-1]))
+                possible_transitions = [L[i-1][u]+w for u, w in G[v]]
+                possible_transitions.append(sys.maxint)
+                tmp_min = min(possible_transitions)
                 L[i][v] = min([tmp_min, L[i-1][v]])
-    tmp = [None]*len(G.keys())
-    for v in G.keys():
-        tmp_min = min([L[-1][u]+w for u, w in G[v]])
+    tmp = dict([(v,None) for v in V])
+    for v in V:
+        possible_transitions = [L[-1][u]+w for u, w in G[v]]
+        possible_transitions.append(sys.maxint)
+        tmp_min = min(possible_transitions)
         tmp[v] = min([tmp_min, L[-1][v]])
     if tmp != L[-1]:
         return None
@@ -38,11 +45,15 @@ if __name__ == "__main__":
     
     filename = option.f
     s = int(option.s)
-    log.info("Filename: {}".format(filename))
+    log.info("Filename: {}\tStarting vertex: {}".format(filename, s))
     G = defaultdict(list)
+    V = set()
     with open(filename, 'r') as f:
         for line in f.readlines():
             v1, v2, w = [int(x) for x in line.split()]
-            G[v1].append( (v2, int(w)) )
             G[v2].append( (v1, int(w)) )
-    print BF(s, G)
+            V.add(v1)
+            V.add(v2)
+    if log_level == logging.DEBUG:
+        log.debug("Graph G: {}".format(G))
+    print BF(s, V, G)
